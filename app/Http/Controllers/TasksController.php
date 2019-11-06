@@ -50,10 +50,17 @@ class TasksController extends Controller
            'content'=>'required|max:191', 
         ]);
         
-        $task = new Task;
-        $task->status=$request->status; //追加
-        $task->content= $request->content;
-        $task->save();
+        $request->user()->tasks()->create([
+            'user_id'=>$request->user_id,
+            'status'=>$request->status,
+            'content'=>$request->content,    
+        ]);
+        
+        // $task = new Task;
+        
+        // $task->status=$request->status; //追加
+        // $task->content= $request->content;
+        // $task->save();
         
         return redirect('/');
     }
@@ -68,9 +75,12 @@ class TasksController extends Controller
     {
         $task = Task::find($id);
         
-        return view('tasks.show',[
-            'task'=>$task,    
-        ]);
+        if(\Auth::id() === $task->user_id){
+            return view('tasks.show',[
+                'task'=>$task,    
+             ]);
+        }
+        return redirect('/');
     }
 
     /**
@@ -83,9 +93,12 @@ class TasksController extends Controller
     {
         $task = Task::find($id);
         
-        return view('tasks.edit',[
-           'task'=>$task, 
-        ]);
+        if(\Auth::id() === $task->user_id){
+            return view('tasks.edit',[
+            'task'=>$task, 
+            ]);
+        }
+         return redirect('/');
     }
 
     /**
@@ -119,8 +132,9 @@ class TasksController extends Controller
     public function destroy($id)
     {
         $task = Task::find($id);
-        $task->delete();
-        
-        return redirect('/');
+       if(\Auth::id() === $task->user_id){
+           $task->delete();
+       }
+         return redirect('/');
     }
 }
